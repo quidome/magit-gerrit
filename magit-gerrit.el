@@ -248,7 +248,7 @@ Succeed even if branch already exist
 		 (magit-gerrit-pretty-print-review num subj owner-name isdraft)
 		 'magit-gerrit-jobj
 		 jobj))
-	(unless (magit-section-hidden (magit-current-section))
+	(unless (oref (magit-current-section) hidden)
 	  (magit-gerrit-wash-approvals approvs))
 	(add-text-properties beg (point) (list 'magit-gerrit-jobj jobj)))
       t)))
@@ -282,7 +282,7 @@ Succeed even if branch already exist
     (when jobj
       (let ((ref (cdr (assoc 'ref (assoc 'currentPatchSet jobj))))
 	    (dir default-directory))
-	(let* ((magit-proc (magit-fetch magit-gerrit-remote ref)))
+	(let* ((magit-proc (magit-git-fetch magit-gerrit-remote ref)))
 	  (message (format "Waiting a git fetch from %s to complete..."
 			   magit-gerrit-remote))
 	  (magit-gerrit-process-wait))
@@ -299,7 +299,7 @@ Succeed even if branch already exist
 	    (branch (format "review/%s/%s"
 			    (cdr (assoc 'username (assoc 'owner jobj)))
 			    (cdr (or (assoc 'topic jobj) (assoc 'number jobj))))))
-	(let* ((magit-proc (magit-fetch magit-gerrit-remote ref)))
+	(let* ((magit-proc (magit-git-fetch magit-gerrit-remote ref)))
 	  (message (format "Waiting a git fetch from %s to complete..."
 			   magit-gerrit-remote))
 	  (magit-gerrit-process-wait))
@@ -400,9 +400,9 @@ Succeed even if branch already exist
 (defun magit-gerrit-push-review (status)
   (let* ((branch (or (magit-get-current-branch)
 		     (error "Don't push a detached head.  That's gross")))
-	 (commitid (or (when (eq (magit-section-type (magit-current-section))
+	 (commitid (or (when (eq (oref (magit-current-section) type)
 				 'commit)
-			 (magit-section-value (magit-current-section)))
+			 (oref (magit-current-section) value))
 		       (error "Couldn't find a commit at point")))
 	 (rev (magit-rev-parse (or commitid
 				   (error "Select a commit for review"))))
